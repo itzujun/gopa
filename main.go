@@ -88,7 +88,7 @@ func doit() {
 	os.RemoveAll(dir)
 	os.MkdirAll(dir, 0777)
 	var total = 0
-	cnum = make(chan int, 60)
+
 	for i := 0; ; i++ {
 		rn := 60
 		pn := rn*i + 1
@@ -109,6 +109,7 @@ func doit() {
 			fmt.Println("图片数量：", total)
 			break
 		}
+		cnum = make(chan int, len(imgList))
 		for _, img := range imgList {
 			total++
 			img = img[10 : len(img)-1]
@@ -116,6 +117,9 @@ func doit() {
 			fileName := dir + strconv.Itoa(total) + ".jpg"
 			fmt.Printf("开始获取第%d张图片，url:%s\n", total, img)
 			go download(fileName, img)
+		}
+		for i := 0; i < len(imgList); i++ {
+			<-cnum
 		}
 		fmt.Println("是否继续获取图片（Y/N）")
 		cb, _, _ := reader.ReadLine()
@@ -125,7 +129,6 @@ func doit() {
 			break
 		}
 	}
-	<-cnum
 	fmt.Printf("total :%d, failed :%d\n", total, failedCount)
 
 	fmt.Println("再来一次（Y/N）")
